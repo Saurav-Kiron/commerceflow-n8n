@@ -4,6 +4,11 @@ An eCommerce support-ticket automation project built with **n8n, Node.js 24, SQL
 
 A ticket becomes a validated classification, a draft reply and a human-review queue. All replies require human review. No customer messages are sent and no refunds are issued.
 
+**Hosted API:** https://commerceflow-api-4i9p.onrender.com/  
+**Health endpoint:** https://commerceflow-api-4i9p.onrender.com/health
+
+The public root returns API information. Ticket submission requires a private API key. See [deployment details](docs/DEPLOYMENT.md) for access and n8n configuration.
+
 ## Workflow
 
 ```mermaid
