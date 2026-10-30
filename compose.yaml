@@ -1,0 +1,33 @@
+services:
+  triage:
+    build: .
+    env_file: .env
+    environment:
+      HOST: 0.0.0.0
+      DB_PATH: /app/data/tickets.db
+      PORT: 3000
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - triage_data:/app/data
+    restart: unless-stopped
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:2.45.6
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      GENERIC_TIMEZONE: Asia/Kolkata
+      TZ: Asia/Kolkata
+      N8N_SECURE_COOKIE: "false"
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      EXECUTIONS_DATA_SAVE_ON_SUCCESS: none
+      EXECUTIONS_DATA_SAVE_ON_ERROR: none
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./workflows:/workflows:ro
+    depends_on:
+      - triage
+    restart: unless-stopped
+volumes:
+  triage_data:
+  n8n_data:

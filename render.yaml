@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: commerceflow-api
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: DB_PATH
+        value: /app/data/tickets.db
+      - key: AI_PROVIDER
+        value: rules
+      - key: TRIAGE_API_KEY
+        generateValue: true

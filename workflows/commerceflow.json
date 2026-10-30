@@ -1,0 +1,66 @@
+{
+  "name": "CommerceFlow - AI Support Triage",
+  "active": false,
+  "settings": { "executionOrder": "v1", "saveDataSuccessExecution": "none", "saveDataErrorExecution": "none" },
+  "nodes": [
+    {
+      "id": "intake", "name": "Ticket Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2,
+      "position": [0, 0], "webhookId": "commerceflow-support-intake",
+      "parameters": { "httpMethod": "POST", "path": "commerceflow/tickets", "authentication": "headerAuth", "responseMode": "responseNode", "options": {} }
+    },
+    {
+      "id": "triage", "name": "Triage API", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2,
+      "position": [240, 0],
+      "parameters": {
+        "method": "POST", "url": "http://triage:3000/triage",
+        "authentication": "genericCredentialType", "genericAuthType": "httpHeaderAuth",
+        "sendBody": true, "specifyBody": "json", "jsonBody": "={{ $json.body }}",
+        "options": { "timeout": 45000, "response": { "response": { "fullResponse": true, "neverError": true, "responseFormat": "json" } } }
+      }
+    },
+    {
+      "id": "success", "name": "API Succeeded?", "type": "n8n-nodes-base.if", "typeVersion": 2.2,
+      "position": [480, 0],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [{ "id": "status-ok", "leftValue": "={{ $json.statusCode }}", "rightValue": 200, "operator": { "type": "number", "operation": "equals" } }],
+          "combinator": "and"
+        }, "options": {}
+      }
+    },
+    {
+      "id": "priority", "name": "Priority Review?", "type": "n8n-nodes-base.if", "typeVersion": 2.2,
+      "position": [720, -100],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [{ "id": "priority-queue", "leftValue": "={{ $json.body.result.queue }}", "rightValue": "priority-review", "operator": { "type": "string", "operation": "equals" } }],
+          "combinator": "and"
+        }, "options": {}
+      }
+    },
+    {
+      "id": "priority-response", "name": "Return Priority Review", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.4,
+      "position": [980, -200],
+      "parameters": { "respondWith": "json", "responseBody": "={{ { ...$json.body, workflow_route: 'priority-review' } }}", "options": { "responseCode": 200 } }
+    },
+    {
+      "id": "standard-response", "name": "Return Review", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.4,
+      "position": [980, 0],
+      "parameters": { "respondWith": "json", "responseBody": "={{ { ...$json.body, workflow_route: $json.body.result.queue } }}", "options": { "responseCode": 200 } }
+    },
+    {
+      "id": "error-response", "name": "Return API Error", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.4,
+      "position": [720, 200],
+      "parameters": { "respondWith": "json", "responseBody": "={{ $json.body }}", "options": { "responseCode": "={{ $json.statusCode }}" } }
+    }
+  ],
+  "connections": {
+    "Ticket Webhook": { "main": [[{ "node": "Triage API", "type": "main", "index": 0 }]] },
+    "Triage API": { "main": [[{ "node": "API Succeeded?", "type": "main", "index": 0 }]] },
+    "API Succeeded?": { "main": [[{ "node": "Priority Review?", "type": "main", "index": 0 }], [{ "node": "Return API Error", "type": "main", "index": 0 }]] },
+    "Priority Review?": { "main": [[{ "node": "Return Priority Review", "type": "main", "index": 0 }], [{ "node": "Return Review", "type": "main", "index": 0 }]] }
+  },
+  "pinData": {}, "tags": []
+}
