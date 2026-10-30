@@ -10,3 +10,4 @@ data/
 *.log
 coverage/
 tmp/
+output/pdf/

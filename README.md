@@ -105,10 +105,6 @@ After pushing the repository, create a Render Blueprint from the repository. The
 
 Free Render services sleep after inactivity. Their local SQLite data is lost on sleep, restart or redeploy. Duplicate protection therefore lasts only as long as the current database exists. Local Docker volumes persist data across container restarts. Durable cloud storage requires a separate persistent-storage design.
 
-## Project files and learning guide
-
-See [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) for the purpose of every file, routing policy, error codes, design choices and interview talking points.
-
 ## Verification
 
 ```powershell
